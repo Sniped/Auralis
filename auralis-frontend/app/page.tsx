@@ -3,8 +3,22 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { isAuthenticated } from "@/lib/auth";
 
 export default function Home() {
+  const [authenticated, setAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const auth = await isAuthenticated();
+      setAuthenticated(auth);
+      setLoading(false);
+    };
+    checkAuth();
+  }, []);
+
   const scrollToDescription = () => {
     document.getElementById('description')?.scrollIntoView({ 
       behavior: 'smooth' 
@@ -24,15 +38,17 @@ export default function Home() {
             Auralis
           </Link>
           
-          {/* Sign In Button */}
-          <Link href="/signin">
-            <Button 
-              size="sm"
-              className="px-6 py-2 text-sm bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-full font-semibold shadow-lg shadow-gray-500/30 hover:shadow-gray-500/50 transition-all duration-300 hover:scale-105 border border-gray-600"
-            >
-              Sign In
-            </Button>
-          </Link>
+          {/* Sign In / Dashboard Button */}
+          {!loading && (
+            <Link href={authenticated ? "/dashboard" : "/signin"}>
+              <Button 
+                size="sm"
+                className="px-6 py-2 text-sm bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-full font-semibold shadow-lg shadow-gray-500/30 hover:shadow-gray-500/50 transition-all duration-300 hover:scale-105 border border-gray-600"
+              >
+                {authenticated ? "Dashboard" : "Sign In"}
+              </Button>
+            </Link>
+          )}
         </div>
       </header>
 
