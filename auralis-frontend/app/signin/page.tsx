@@ -4,15 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle sign in logic here
+    
+    // TODO: Add proper authentication logic here
+    // For now, directly navigate to dashboard for development purposes
+    // This should be replaced with actual auth validation before production
     console.log("Sign in with:", email, password);
+    
+    // Navigate to dashboard (no auth check for development)
+    router.push("/dashboard");
   };
 
   return (
