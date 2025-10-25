@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
 
 export default function Home() {
   const scrollToDescription = () => {
@@ -12,6 +13,29 @@ export default function Home() {
 
   return (
     <main className="relative bg-gradient-to-br from-gray-900 via-blue-950 to-black overflow-hidden overscroll-none">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-gray-900/50 border-b border-white/10">
+        <div className="w-full px-8 sm:px-12 md:px-16 lg:px-20 xl:px-24 py-4 flex justify-between items-center">
+          {/* Logo */}
+          <Link 
+            href="/"
+            className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
+          >
+            Auralis
+          </Link>
+          
+          {/* Sign In Button */}
+          <Link href="/signin">
+            <Button 
+              size="sm"
+              className="px-6 py-2 text-sm bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-full font-semibold shadow-lg shadow-gray-500/30 hover:shadow-gray-500/50 transition-all duration-300 hover:scale-105 border border-gray-600"
+            >
+              Sign In
+            </Button>
+          </Link>
+        </div>
+      </header>
+
       {/* Animated gradient orbs */}
       <div className="absolute top-20 left-20 w-96 h-96 bg-blue-500/30 rounded-full filter blur-3xl animate-pulse"></div>
       <div className="absolute bottom-20 right-20 w-96 h-96 bg-cyan-500/20 rounded-full filter blur-3xl animate-pulse delay-1000"></div>
@@ -38,12 +62,14 @@ export default function Home() {
             >
               <span className="relative z-10">Get Started</span>
             </Button>
-            <Button 
-              size="lg"
-              className="group relative px-10 py-5 text-base bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-full font-semibold shadow-lg shadow-gray-500/30 hover:shadow-gray-500/50 transition-all duration-300 hover:scale-105 border border-gray-600"
-            >
-              <span className="relative z-10">Sign In</span>
-            </Button>
+            <Link href="/signin">
+              <Button 
+                size="lg"
+                className="group relative px-10 py-5 text-base bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-full font-semibold shadow-lg shadow-gray-500/30 hover:shadow-gray-500/50 transition-all duration-300 hover:scale-105 border border-gray-600"
+              >
+                <span className="relative z-10">Sign In</span>
+              </Button>
+            </Link>
           </div>
         </div>
         
@@ -176,12 +202,14 @@ export default function Home() {
 
         {/* Sign In Button */}
         <div className="mt-6">
-          <Button 
-            size="lg"
-            className="px-10 py-5 text-base bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full font-semibold shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300 hover:scale-105"
-          >
-            <span className="relative z-10">Sign In</span>
-          </Button>
+          <Link href="/signin">
+            <Button 
+              size="lg"
+              className="px-10 py-5 text-base bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full font-semibold shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300 hover:scale-105"
+            >
+              <span className="relative z-10">Sign In</span>
+            </Button>
+          </Link>
         </div>
       </div>
       
