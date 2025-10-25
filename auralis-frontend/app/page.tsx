@@ -30,13 +30,19 @@ export default function Home() {
           </p>
           
           {/* CTA Button */}
-          <div className="pt-8">
+          <div className="pt-4 flex gap-4 justify-center items-center">
             <Button 
               onClick={scrollToDescription}
               size="lg"
-              className="group relative px-12 py-6 text-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full font-semibold shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300 hover:scale-105 min-w-[200px] h-auto"
+              className="group relative px-10 py-5 text-base bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full font-semibold shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300 hover:scale-105"
             >
               <span className="relative z-10">Get Started</span>
+            </Button>
+            <Button 
+              size="lg"
+              className="group relative px-10 py-5 text-base bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-full font-semibold shadow-lg shadow-gray-500/30 hover:shadow-gray-500/50 transition-all duration-300 hover:scale-105 border border-gray-600"
+            >
+              <span className="relative z-10">Sign In</span>
             </Button>
           </div>
         </div>
@@ -55,62 +61,62 @@ export default function Home() {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.15)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]"></div>
 
       {/* Description Section */}
-      <div id="description" className="relative z-10 min-h-screen flex flex-col items-center justify-center py-24 md:py-32 px-8 sm:px-12 md:px-16 lg:px-20 xl:px-24">
+      <div id="description" className="relative z-10 h-screen flex flex-col items-center justify-center py-6 md:py-8 px-8 sm:px-12 md:px-16 lg:px-20 xl:px-24">
         {/* Section Title */}
-        <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent animate-gradient text-center mb-16 md:mb-20">
+        <h2 className="text-3xl md:text-4xl lg:text-6xl font-bold bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent animate-gradient text-center mb-5 md:mb-6">
           Your Memory Has Limits. Auralis Doesn&apos;t.
         </h2>
         
         <div className="w-full max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
+          <div className="grid lg:grid-cols-2 gap-5 lg:gap-8 items-start">
             {/* Left Column */}
-            <div className="space-y-10">
+            <div className="space-y-3">
               {/* Description */}
-              <p className="text-lg md:text-xl lg:text-2xl text-[#e0e6ed] leading-relaxed opacity-90">
+              <p className="text-base md:text-lg text-[#e0e6ed] leading-relaxed opacity-90">
                 Stop worrying about what you might forget. Auralis automatically captures every detail from patient interactions—symptoms, concerns, emotions, even subtle cues—so you can be fully present without mentally tracking what to write down later.
               </p>
 
               {/* Value Propositions */}
-              <div className="space-y-5 pt-4">
-                <div className="group p-6 bg-[rgba(59,130,246,0.05)] border-l-4 border-[#3b82f6] rounded-xl hover:bg-[rgba(59,130,246,0.08)] hover:translate-x-2 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10">
-                  <div className="flex gap-5 items-start">
-                    <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#10b981]/20 flex items-center justify-center mt-0.5">
-                      <span className="text-[#10b981] text-xl font-bold">✓</span>
+              <div className="space-y-3 pt-2">
+                <div className="group p-4 bg-[rgba(59,130,246,0.05)] border-l-4 border-[#3b82f6] rounded-xl hover:bg-[rgba(59,130,246,0.08)] hover:translate-x-2 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10">
+                  <div className="flex gap-3 items-start">
+                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#10b981]/20 flex items-center justify-center mt-0.5">
+                      <span className="text-[#10b981] text-sm font-bold">✓</span>
                     </div>
-                    <p className="text-[#d1d5db] leading-relaxed text-base md:text-lg">
+                    <p className="text-[#d1d5db] leading-relaxed text-sm">
                       Captures every detail automatically—no mental note-taking required
                     </p>
                   </div>
                 </div>
 
-                <div className="group p-6 bg-[rgba(59,130,246,0.05)] border-l-4 border-[#3b82f6] rounded-xl hover:bg-[rgba(59,130,246,0.08)] hover:translate-x-2 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10">
-                  <div className="flex gap-5 items-start">
-                    <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#10b981]/20 flex items-center justify-center mt-0.5">
-                      <span className="text-[#10b981] text-xl font-bold">✓</span>
+                <div className="group p-4 bg-[rgba(59,130,246,0.05)] border-l-4 border-[#3b82f6] rounded-xl hover:bg-[rgba(59,130,246,0.08)] hover:translate-x-2 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10">
+                  <div className="flex gap-3 items-start">
+                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#10b981]/20 flex items-center justify-center mt-0.5">
+                      <span className="text-[#10b981] text-sm font-bold">✓</span>
                     </div>
-                    <p className="text-[#d1d5db] leading-relaxed text-base md:text-lg">
+                    <p className="text-[#d1d5db] leading-relaxed text-sm">
                       Remembers patient emotions and subtle cues you might miss
                     </p>
                   </div>
                 </div>
 
-                <div className="group p-6 bg-[rgba(59,130,246,0.05)] border-l-4 border-[#3b82f6] rounded-xl hover:bg-[rgba(59,130,246,0.08)] hover:translate-x-2 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10">
-                  <div className="flex gap-5 items-start">
-                    <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#10b981]/20 flex items-center justify-center mt-0.5">
-                      <span className="text-[#10b981] text-xl font-bold">✓</span>
+                <div className="group p-4 bg-[rgba(59,130,246,0.05)] border-l-4 border-[#3b82f6] rounded-xl hover:bg-[rgba(59,130,246,0.08)] hover:translate-x-2 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10">
+                  <div className="flex gap-3 items-start">
+                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#10b981]/20 flex items-center justify-center mt-0.5">
+                      <span className="text-[#10b981] text-sm font-bold">✓</span>
                     </div>
-                    <p className="text-[#d1d5db] leading-relaxed text-base md:text-lg">
+                    <p className="text-[#d1d5db] leading-relaxed text-sm">
                       Instant access to complete records—no struggling to recall
                     </p>
                   </div>
                 </div>
 
-                <div className="group p-6 bg-[rgba(59,130,246,0.05)] border-l-4 border-[#3b82f6] rounded-xl hover:bg-[rgba(59,130,246,0.08)] hover:translate-x-2 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10">
-                  <div className="flex gap-5 items-start">
-                    <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#10b981]/20 flex items-center justify-center mt-0.5">
-                      <span className="text-[#10b981] text-xl font-bold">✓</span>
+                <div className="group p-4 bg-[rgba(59,130,246,0.05)] border-l-4 border-[#3b82f6] rounded-xl hover:bg-[rgba(59,130,246,0.08)] hover:translate-x-2 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10">
+                  <div className="flex gap-3 items-start">
+                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#10b981]/20 flex items-center justify-center mt-0.5">
+                      <span className="text-[#10b981] text-sm font-bold">✓</span>
                     </div>
-                    <p className="text-[#d1d5db] leading-relaxed text-base md:text-lg">
+                    <p className="text-[#d1d5db] leading-relaxed text-sm">
                       Focus on patients, not on remembering what to document
                     </p>
                   </div>
@@ -119,57 +125,68 @@ export default function Home() {
             </div>
 
             {/* Right Column - Stats Panel */}
-            <div className="lg:sticky lg:top-24">
-              <div className="space-y-8">
-                {/* Stat 1 */}
-                <Card className="bg-gradient-to-br from-[rgba(59,130,246,0.12)] to-[rgba(6,182,212,0.12)] border-[rgba(59,130,246,0.35)] backdrop-blur-sm shadow-2xl shadow-blue-500/20">
-                  <CardContent className="p-10 md:p-12 space-y-4">
-                    <div className="text-6xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-[#60a5fa] to-[#06b6d4] bg-clip-text text-transparent leading-none">
-                      Zero
-                    </div>
-                    <div className="text-xs md:text-sm font-bold tracking-widest text-[#9ca3af] uppercase">
-                      Details Forgotten
-                    </div>
-                    <p className="text-[#e0e6ed] leading-relaxed text-base md:text-lg opacity-90">
-                      Every interaction captured perfectly, every time
-                    </p>
-                  </CardContent>
-                </Card>
+            <div className="space-y-3">
+              {/* Stat 1 */}
+              <Card className="bg-gradient-to-br from-[rgba(59,130,246,0.12)] to-[rgba(6,182,212,0.12)] border-[rgba(59,130,246,0.35)] backdrop-blur-sm shadow-2xl shadow-blue-500/20">
+                <CardContent className="p-6 space-y-2">
+                  <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-[#60a5fa] to-[#06b6d4] bg-clip-text text-transparent leading-none">
+                    Zero
+                  </div>
+                  <div className="text-xs font-bold tracking-widest text-[#9ca3af] uppercase">
+                    Details Forgotten
+                  </div>
+                  <p className="text-[#e0e6ed] leading-relaxed text-sm opacity-90">
+                    Every interaction captured perfectly, every time
+                  </p>
+                </CardContent>
+              </Card>
 
-                {/* Stat 2 */}
-                <Card className="bg-gradient-to-br from-[rgba(59,130,246,0.12)] to-[rgba(6,182,212,0.12)] border-[rgba(59,130,246,0.35)] backdrop-blur-sm shadow-2xl shadow-blue-500/20">
-                  <CardContent className="p-10 md:p-12 space-y-4">
-                    <div className="text-6xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-[#60a5fa] to-[#06b6d4] bg-clip-text text-transparent leading-none">
-                      100%
-                    </div>
-                    <div className="text-xs md:text-sm font-bold tracking-widest text-[#9ca3af] uppercase">
-                      Automatic Recall
-                    </div>
-                    <p className="text-[#e0e6ed] leading-relaxed text-base md:text-lg opacity-90">
-                      Access any patient detail instantly, days or weeks later
-                    </p>
-                  </CardContent>
-                </Card>
+              {/* Stat 2 */}
+              <Card className="bg-gradient-to-br from-[rgba(59,130,246,0.12)] to-[rgba(6,182,212,0.12)] border-[rgba(59,130,246,0.35)] backdrop-blur-sm shadow-2xl shadow-blue-500/20">
+                <CardContent className="p-6 space-y-2">
+                  <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-[#60a5fa] to-[#06b6d4] bg-clip-text text-transparent leading-none">
+                    100%
+                  </div>
+                  <div className="text-xs font-bold tracking-widest text-[#9ca3af] uppercase">
+                    Automatic Recall
+                  </div>
+                  <p className="text-[#e0e6ed] leading-relaxed text-sm opacity-90">
+                    Access any patient detail instantly, days or weeks later
+                  </p>
+                </CardContent>
+              </Card>
 
-                {/* Stat 3 */}
-                <Card className="bg-gradient-to-br from-[rgba(59,130,246,0.12)] to-[rgba(6,182,212,0.12)] border-[rgba(59,130,246,0.35)] backdrop-blur-sm shadow-2xl shadow-blue-500/20">
-                  <CardContent className="p-10 md:p-12 space-y-4">
-                    <div className="text-6xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-[#60a5fa] to-[#06b6d4] bg-clip-text text-transparent leading-none">
-                      Complete
-                    </div>
-                    <div className="text-xs md:text-sm font-bold tracking-widest text-[#9ca3af] uppercase">
-                      Context Preserved
-                    </div>
-                    <p className="text-[#e0e6ed] leading-relaxed text-base md:text-lg opacity-90">
-                      Symptoms, emotions, and subtle cues—all documented
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
+              {/* Stat 3 */}
+              <Card className="bg-gradient-to-br from-[rgba(59,130,246,0.12)] to-[rgba(6,182,212,0.12)] border-[rgba(59,130,246,0.35)] backdrop-blur-sm shadow-2xl shadow-blue-500/20">
+                <CardContent className="p-6 space-y-2">
+                  <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-[#60a5fa] to-[#06b6d4] bg-clip-text text-transparent leading-none">
+                    Complete
+                  </div>
+                  <div className="text-xs font-bold tracking-widest text-[#9ca3af] uppercase">
+                    Context Preserved
+                  </div>
+                  <p className="text-[#e0e6ed] leading-relaxed text-sm opacity-90">
+                    Symptoms, emotions, and subtle cues—all documented
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
+
+        {/* Sign In Button */}
+        <div className="mt-6">
+          <Button 
+            size="lg"
+            className="px-10 py-5 text-base bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full font-semibold shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300 hover:scale-105"
+          >
+            <span className="relative z-10">Sign In</span>
+          </Button>
+        </div>
       </div>
+      
+      {/* Grid overlay for depth */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.15)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]"></div>
     </main>
   );
 }
