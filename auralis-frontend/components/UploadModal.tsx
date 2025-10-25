@@ -26,8 +26,6 @@ export default function UploadModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadXhrRef = useRef<XMLHttpRequest | null>(null);
 
-  const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
-
   // Reset modal state
   const resetModal = () => {
     setSelectedFile(null);
@@ -55,26 +53,23 @@ export default function UploadModal({
     }
   };
 
-  // Validate file
-  const validateFile = (file: File): string | null => {
-    if (!file.type.startsWith('video/')) {
-      return 'Please select a valid video file';
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      return 'File size must be less than 500MB';
-    }
-    return null;
-  };
-
   // Handle file selection
   const handleFileSelect = (file: File) => {
-    const validationError = validateFile(file);
-    if (validationError) {
-      setError(validationError);
+    // Validate file type
+    if (!file.type.startsWith('video/')) {
+      setError('Please select a video file');
       return;
     }
-    setSelectedFile(file);
+
+    // Validate file size (max 4GB)
+    const maxSize = 4 * 1024 * 1024 * 1024; // 4GB
+    if (file.size > maxSize) {
+      setError('File size must be less than 4GB');
+      return;
+    }
+
     setError('');
+    setSelectedFile(file);
   };
 
   // Handle file input change
@@ -239,28 +234,30 @@ export default function UploadModal({
 
           {/* File Upload Area */}
           {!selectedFile && !uploading && (
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
-                isDragging
-                  ? 'border-blue-400 bg-blue-500/10'
-                  : 'border-blue-500/30 hover:border-blue-400/50 hover:bg-blue-500/5'
-              }`}
-            >
-              <div className="flex flex-col items-center gap-4">
-                <svg className="w-16 h-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                <div>
-                  <p className="text-lg text-white font-semibold mb-1">
-                    Drop video file here or click to browse
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    Maximum file size: 500MB
-                  </p>
+            <>
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
+                  isDragging
+                    ? 'border-blue-400 bg-blue-500/10'
+                    : 'border-blue-500/30 hover:border-blue-400/50 hover:bg-blue-500/5'
+                }`}
+              >
+                <div className="flex flex-col items-center gap-4">
+                  <svg className="w-16 h-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <div>
+                    <p className="text-sm text-gray-400 mb-2">
+                      Drag and drop your video file here, or click to browse
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Supported formats: MP4, MOV, AVI, etc. (Max 4GB)
+                    </p>
+                  </div>
                 </div>
               </div>
               <input
@@ -270,7 +267,7 @@ export default function UploadModal({
                 onChange={handleFileInputChange}
                 className="hidden"
               />
-            </div>
+            </>
           )}
 
           {/* Selected File Info */}
