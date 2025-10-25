@@ -3,13 +3,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { isAuthenticated, signOut, getCurrentSession } from "@/lib/auth";
 
 /**
  * Dashboard Page for Auralis Healthcare Documentation
  * 
- * NOTE: This page currently has no authentication for development purposes.
- * TODO: Add proper authentication middleware before production deployment.
+ * Protected route - requires AWS Cognito authentication
  * 
  * This dashboard provides healthcare professionals with:
  * - Recent patient interaction records
@@ -55,6 +56,50 @@ const mockPatientRecords = [
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRecord, setSelectedRecord] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState("");
+  const router = useRouter();
+
+  // Check authentication on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const authenticated = await isAuthenticated();
+      
+      if (!authenticated) {
+        router.push("/signin");
+        return;
+      }
+
+      // Get user email from session
+      const session = await getCurrentSession();
+      if (session) {
+        const email = session.getIdToken().payload.email;
+        setUserEmail(email || "");
+      }
+
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, [router]);
+
+  // Handle sign out
+  const handleSignOut = () => {
+    signOut();
+    router.push("/signin");
+  };
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <main className="relative bg-gradient-to-br from-gray-900 via-blue-950 to-black min-h-screen overflow-hidden overscroll-none flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mb-4"></div>
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </main>
+    );
+  }
 
   // Filter records based on search
   const filteredRecords = mockPatientRecords.filter(record =>
@@ -77,16 +122,14 @@ export default function Dashboard() {
           
           {/* User Actions */}
           <div className="flex gap-4 items-center">
-            <span className="text-gray-300 text-sm hidden md:block">Dr. Smith</span>
-            {/* TODO: Add proper logout functionality with auth */}
-            <Link href="/">
-              <Button 
-                size="sm"
-                className="px-6 py-2 text-sm bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-full font-semibold shadow-lg shadow-gray-500/30 hover:shadow-gray-500/50 transition-all duration-300 hover:scale-105 border border-gray-600"
-              >
-                Sign Out
-              </Button>
-            </Link>
+            <span className="text-gray-300 text-sm hidden md:block">{userEmail}</span>
+            <Button 
+              onClick={handleSignOut}
+              size="sm"
+              className="px-6 py-2 text-sm bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-full font-semibold shadow-lg shadow-gray-500/30 hover:shadow-gray-500/50 transition-all duration-300 hover:scale-105 border border-gray-600"
+            >
+              Sign Out
+            </Button>
           </div>
         </div>
       </header>

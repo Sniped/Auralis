@@ -5,22 +5,88 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn, changePassword } from "@/lib/auth";
+import { CognitoUser } from "amazon-cognito-identity-js";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [requiresPasswordChange, setRequiresPasswordChange] = useState(false);
+  const [cognitoUser, setCognitoUser] = useState<CognitoUser | null>(null);
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // TODO: Add proper authentication logic here
-    // For now, directly navigate to dashboard for development purposes
-    // This should be replaced with actual auth validation before production
-    console.log("Sign in with:", email, password);
-    
-    // Navigate to dashboard (no auth check for development)
-    router.push("/dashboard");
+    setError("");
+    setLoading(true);
+
+    try {
+      const result = await signIn(email, password);
+
+      if (!result.success) {
+        setError(result.error || "Sign in failed");
+        setLoading(false);
+        return;
+      }
+
+      if (result.requiresPasswordChange && result.cognitoUser) {
+        // User needs to change password
+        setRequiresPasswordChange(true);
+        setCognitoUser(result.cognitoUser);
+        setLoading(false);
+        return;
+      }
+
+      // Successful login - redirect to dashboard
+      router.push("/dashboard");
+    } catch (err) {
+      setError("An unexpected error occurred");
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    // Validate passwords
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (!cognitoUser) {
+      setError("Session expired. Please sign in again.");
+      setRequiresPasswordChange(false);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const result = await changePassword(cognitoUser, newPassword);
+
+      if (!result.success) {
+        setError(result.error || "Password change failed");
+        setLoading(false);
+        return;
+      }
+
+      // Successful password change - redirect to dashboard
+      router.push("/dashboard");
+    } catch (err) {
+      setError("An unexpected error occurred");
+      setLoading(false);
+    }
   };
 
   return (
@@ -67,48 +133,118 @@ export default function SignIn() {
             </p>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email Input */}
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-gray-300">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  required
-                  className="w-full px-4 py-3 rounded-xl bg-gray-900/50 border border-blue-500/30 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all"
-                />
-              </div>
+            {!requiresPasswordChange ? (
+              // Initial Sign In Form
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {error && (
+                  <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-sm">
+                    {error}
+                  </div>
+                )}
 
-              {/* Password Input */}
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium text-gray-300">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full px-4 py-3 rounded-xl bg-gray-900/50 border border-blue-500/30 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all"
-                />
-              </div>
+                {/* Email Input */}
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium text-gray-300">
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                    disabled={loading}
+                    className="w-full px-4 py-3 rounded-xl bg-gray-900/50 border border-blue-500/30 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all disabled:opacity-50"
+                  />
+                </div>
 
-              {/* Sign In Button */}
-              <Button 
-                type="submit"
-                size="lg"
-                className="w-full px-10 py-6 text-base bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full font-semibold shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300 hover:scale-105"
-              >
-                Sign In
-              </Button>
-            </form>
+                {/* Password Input */}
+                <div className="space-y-2">
+                  <label htmlFor="password" className="text-sm font-medium text-gray-300">
+                    Password
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    disabled={loading}
+                    className="w-full px-4 py-3 rounded-xl bg-gray-900/50 border border-blue-500/30 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all disabled:opacity-50"
+                  />
+                </div>
+
+                {/* Sign In Button */}
+                <Button 
+                  type="submit"
+                  size="lg"
+                  disabled={loading}
+                  className="w-full px-10 py-6 text-base bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full font-semibold shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  {loading ? "Signing in..." : "Sign In"}
+                </Button>
+              </form>
+            ) : (
+              // Password Change Form
+              <form onSubmit={handlePasswordChange} className="space-y-6">
+                <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-300 text-sm">
+                  You must change your password before continuing.
+                </div>
+
+                {error && (
+                  <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-sm">
+                    {error}
+                  </div>
+                )}
+
+                {/* New Password Input */}
+                <div className="space-y-2">
+                  <label htmlFor="newPassword" className="text-sm font-medium text-gray-300">
+                    New Password
+                  </label>
+                  <input
+                    id="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    disabled={loading}
+                    className="w-full px-4 py-3 rounded-xl bg-gray-900/50 border border-blue-500/30 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all disabled:opacity-50"
+                  />
+                  <p className="text-xs text-gray-400">Must be at least 8 characters</p>
+                </div>
+
+                {/* Confirm Password Input */}
+                <div className="space-y-2">
+                  <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-300">
+                    Confirm Password
+                  </label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    disabled={loading}
+                    className="w-full px-4 py-3 rounded-xl bg-gray-900/50 border border-blue-500/30 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all disabled:opacity-50"
+                  />
+                </div>
+
+                {/* Change Password Button */}
+                <Button 
+                  type="submit"
+                  size="lg"
+                  disabled={loading}
+                  className="w-full px-10 py-6 text-base bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full font-semibold shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  {loading ? "Changing password..." : "Change Password"}
+                </Button>
+              </form>
+            )}
           </CardContent>
         </Card>
       </div>
