@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Home() {
   const scrollToDescription = () => {
@@ -10,13 +11,13 @@ export default function Home() {
   };
 
   return (
-    <main className="relative bg-gradient-to-br from-gray-900 via-blue-950 to-black overflow-hidden">
+    <main className="relative bg-gradient-to-br from-gray-900 via-blue-950 to-black overflow-hidden overscroll-none">
       {/* Animated gradient orbs */}
       <div className="absolute top-20 left-20 w-96 h-96 bg-blue-500/30 rounded-full filter blur-3xl animate-pulse"></div>
       <div className="absolute bottom-20 right-20 w-96 h-96 bg-cyan-500/20 rounded-full filter blur-3xl animate-pulse delay-1000"></div>
       
       {/* Hero Section */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-8 sm:px-12 md:px-16 lg:px-20 xl:px-24">
         <div className="text-center space-y-6">
           {/* Main title with gradient */}
           <h1 className="text-8xl md:text-9xl font-bold bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent animate-gradient">
@@ -54,16 +55,16 @@ export default function Home() {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.15)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]"></div>
 
       {/* Description Section */}
-      <div id="description" className="relative z-10 min-h-screen flex items-center justify-center px-6 py-24 md:py-32">
+      <div id="description" className="relative z-10 min-h-screen flex flex-col items-center justify-center py-24 md:py-32 px-8 sm:px-12 md:px-16 lg:px-20 xl:px-24">
+        {/* Section Title */}
+        <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent animate-gradient text-center mb-16 md:mb-20">
+          Your Memory Has Limits. Auralis Doesn&apos;t.
+        </h2>
+        
         <div className="w-full max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
             {/* Left Column */}
             <div className="space-y-10">
-              {/* Heading */}
-              <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold bg-gradient-to-r from-[#60a5fa] to-[#06b6d4] bg-clip-text text-transparent leading-[1.1]">
-                Your Memory Has Limits.<br />Auralis Doesn&apos;t.
-              </h2>
-
               {/* Description */}
               <p className="text-lg md:text-xl lg:text-2xl text-[#e0e6ed] leading-relaxed opacity-90">
                 Stop worrying about what you might forget. Auralis automatically captures every detail from patient interactions—symptoms, concerns, emotions, even subtle cues—so you can be fully present without mentally tracking what to write down later.
@@ -119,45 +120,51 @@ export default function Home() {
 
             {/* Right Column - Stats Panel */}
             <div className="lg:sticky lg:top-24">
-              <div className="bg-gradient-to-br from-[rgba(59,130,246,0.12)] to-[rgba(6,182,212,0.12)] border border-[rgba(59,130,246,0.35)] rounded-3xl p-10 md:p-12 space-y-12 backdrop-blur-sm shadow-2xl shadow-blue-500/20">
+              <div className="space-y-8">
                 {/* Stat 1 */}
-                <div className="space-y-4 pb-10 border-b border-[rgba(59,130,246,0.25)]">
-                  <div className="text-6xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-[#60a5fa] to-[#06b6d4] bg-clip-text text-transparent leading-none">
-                    Zero
-                  </div>
-                  <div className="text-xs md:text-sm font-bold tracking-widest text-[#9ca3af] uppercase">
-                    Details Forgotten
-                  </div>
-                  <p className="text-[#e0e6ed] leading-relaxed text-base md:text-lg opacity-90">
-                    Every interaction captured perfectly, every time
-                  </p>
-                </div>
+                <Card className="bg-gradient-to-br from-[rgba(59,130,246,0.12)] to-[rgba(6,182,212,0.12)] border-[rgba(59,130,246,0.35)] backdrop-blur-sm shadow-2xl shadow-blue-500/20">
+                  <CardContent className="p-10 md:p-12 space-y-4">
+                    <div className="text-6xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-[#60a5fa] to-[#06b6d4] bg-clip-text text-transparent leading-none">
+                      Zero
+                    </div>
+                    <div className="text-xs md:text-sm font-bold tracking-widest text-[#9ca3af] uppercase">
+                      Details Forgotten
+                    </div>
+                    <p className="text-[#e0e6ed] leading-relaxed text-base md:text-lg opacity-90">
+                      Every interaction captured perfectly, every time
+                    </p>
+                  </CardContent>
+                </Card>
 
                 {/* Stat 2 */}
-                <div className="space-y-4 pb-10 border-b border-[rgba(59,130,246,0.25)]">
-                  <div className="text-6xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-[#60a5fa] to-[#06b6d4] bg-clip-text text-transparent leading-none">
-                    100%
-                  </div>
-                  <div className="text-xs md:text-sm font-bold tracking-widest text-[#9ca3af] uppercase">
-                    Automatic Recall
-                  </div>
-                  <p className="text-[#e0e6ed] leading-relaxed text-base md:text-lg opacity-90">
-                    Access any patient detail instantly, days or weeks later
-                  </p>
-                </div>
+                <Card className="bg-gradient-to-br from-[rgba(59,130,246,0.12)] to-[rgba(6,182,212,0.12)] border-[rgba(59,130,246,0.35)] backdrop-blur-sm shadow-2xl shadow-blue-500/20">
+                  <CardContent className="p-10 md:p-12 space-y-4">
+                    <div className="text-6xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-[#60a5fa] to-[#06b6d4] bg-clip-text text-transparent leading-none">
+                      100%
+                    </div>
+                    <div className="text-xs md:text-sm font-bold tracking-widest text-[#9ca3af] uppercase">
+                      Automatic Recall
+                    </div>
+                    <p className="text-[#e0e6ed] leading-relaxed text-base md:text-lg opacity-90">
+                      Access any patient detail instantly, days or weeks later
+                    </p>
+                  </CardContent>
+                </Card>
 
                 {/* Stat 3 */}
-                <div className="space-y-4">
-                  <div className="text-6xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-[#60a5fa] to-[#06b6d4] bg-clip-text text-transparent leading-none">
-                    Complete
-                  </div>
-                  <div className="text-xs md:text-sm font-bold tracking-widest text-[#9ca3af] uppercase">
-                    Context Preserved
-                  </div>
-                  <p className="text-[#e0e6ed] leading-relaxed text-base md:text-lg opacity-90">
-                    Symptoms, emotions, and subtle cues—all documented
-                  </p>
-                </div>
+                <Card className="bg-gradient-to-br from-[rgba(59,130,246,0.12)] to-[rgba(6,182,212,0.12)] border-[rgba(59,130,246,0.35)] backdrop-blur-sm shadow-2xl shadow-blue-500/20">
+                  <CardContent className="p-10 md:p-12 space-y-4">
+                    <div className="text-6xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-[#60a5fa] to-[#06b6d4] bg-clip-text text-transparent leading-none">
+                      Complete
+                    </div>
+                    <div className="text-xs md:text-sm font-bold tracking-widest text-[#9ca3af] uppercase">
+                      Context Preserved
+                    </div>
+                    <p className="text-[#e0e6ed] leading-relaxed text-base md:text-lg opacity-90">
+                      Symptoms, emotions, and subtle cues—all documented
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </div>
