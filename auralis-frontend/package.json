@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.917.0",
+    "@aws-sdk/s3-request-presigner": "^3.917.0",
     "@radix-ui/react-slot": "^1.2.3",
     "amazon-cognito-identity-js": "^6.3.15",
     "class-variance-authority": "^0.7.1",

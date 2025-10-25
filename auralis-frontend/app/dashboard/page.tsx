@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { isAuthenticated, signOut, getCurrentSession } from "@/lib/auth";
+import UploadModal from "@/components/UploadModal";
 
 /**
  * Dashboard Page for Auralis Healthcare Documentation
@@ -16,7 +17,7 @@ import { isAuthenticated, signOut, getCurrentSession } from "@/lib/auth";
  * - Recent patient interaction records
  * - Quick access to captured details (symptoms, emotions, cues)
  * - Search and filter functionality
- * - New recording interface
+ * - Video upload functionality to S3
  */
 
 // Mock data - TODO: Replace with actual API calls
@@ -58,6 +59,8 @@ export default function Dashboard() {
   const [selectedRecord, setSelectedRecord] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState("");
+  const [userId, setUserId] = useState("");
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const router = useRouter();
 
   // Check authentication on mount
@@ -70,11 +73,13 @@ export default function Dashboard() {
         return;
       }
 
-      // Get user email from session
+      // Get user email and ID from session
       const session = await getCurrentSession();
       if (session) {
         const email = session.getIdToken().payload.email;
+        const cognitoUserId = session.getIdToken().payload.sub;
         setUserEmail(email || "");
+        setUserId(cognitoUserId || "");
       }
 
       setLoading(false);
@@ -87,6 +92,12 @@ export default function Dashboard() {
   const handleSignOut = () => {
     signOut();
     router.push("/signin");
+  };
+
+  // Handle upload complete
+  const handleUploadComplete = () => {
+    // TODO: Refresh recordings list or update UI
+    console.log('Upload completed successfully');
   };
 
   // Show loading state while checking authentication
@@ -153,6 +164,7 @@ export default function Dashboard() {
               </p>
             </div>
             <Button 
+              onClick={() => setShowUploadModal(true)}
               size="lg"
               className="px-8 py-6 text-base bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full font-semibold shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 transition-all duration-300 hover:scale-105"
             >
@@ -299,6 +311,14 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Upload Modal */}
+      <UploadModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        onUploadComplete={handleUploadComplete}
+        userId={userId}
+      />
     </main>
   );
 }
