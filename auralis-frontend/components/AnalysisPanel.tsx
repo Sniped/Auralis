@@ -134,7 +134,7 @@ export default function AnalysisPanel({ videoKey }: AnalysisPanelProps) {
       </div>
 
       {/* Raw JSON Display */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4 scrollbar-custom">
         <pre className="text-xs text-gray-300 bg-gray-900/50 p-4 rounded-lg overflow-x-auto border border-cyan-500/20">
           {JSON.stringify(analysis, null, 2)}
         </pre>
