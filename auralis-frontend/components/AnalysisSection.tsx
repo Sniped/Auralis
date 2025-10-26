@@ -30,7 +30,7 @@ interface AnalysisSectionProps {
   transcript: TranscriptResponse | null;
   analysisData: AnalysisData | null;
   loading: boolean;
-  error: string | null;
+  error: string | null; // Keep for compatibility but don't use
   onSeekTo: (seconds: number) => void;
 }
 
@@ -38,7 +38,6 @@ export default function AnalysisSection({
   transcript,
   analysisData,
   loading,
-  error,
   onSeekTo,
 }: AnalysisSectionProps) {
   // Compute metrics from transcript data
@@ -69,8 +68,8 @@ export default function AnalysisSection({
     };
   }, [transcript]);
 
-  // Loading State
-  if (loading) {
+  // Loading State or Not Available - just show loading spinner
+  if (loading || !transcript) {
     return (
       <div className="h-full flex flex-col bg-[#0a1628]">
         {/* Header */}
@@ -83,70 +82,12 @@ export default function AnalysisSection({
           </h3>
         </div>
 
-        {/* Loading Skeletons */}
-        <div className="flex-1 overflow-y-auto p-4 scrollbar-custom space-y-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-6 animate-pulse">
-              <div className="h-6 bg-slate-700 rounded w-1/3 mb-4"></div>
-              <div className="space-y-3">
-                <div className="h-20 bg-slate-700 rounded"></div>
-                <div className="h-20 bg-slate-700 rounded"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // Not Available State
-  if (!transcript && !error) {
-    return (
-      <div className="h-full flex flex-col bg-[#0a1628]">
-        {/* Header */}
-        <div className="flex-shrink-0 p-4 border-b border-cyan-500/20">
-          <h3 className="text-lg font-semibold text-cyan-300 flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            Clinical Analysis
-          </h3>
-        </div>
-
+        {/* Loading Spinner */}
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="text-center">
-            <svg className="w-16 h-16 text-cyan-400/50 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            <p className="text-sm text-gray-400">Analysis not available</p>
-            <p className="text-xs text-gray-500 mt-1">Transcript data is required for analysis</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Error State
-  if (error) {
-    return (
-      <div className="h-full flex flex-col bg-[#0a1628]">
-        {/* Header */}
-        <div className="flex-shrink-0 p-4 border-b border-cyan-500/20">
-          <h3 className="text-lg font-semibold text-cyan-300 flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            Clinical Analysis
-          </h3>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="text-center">
-            <svg className="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-sm text-red-400">Failed to load analysis</p>
-            <p className="text-xs text-gray-500 mt-1">{error}</p>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mb-4"></div>
+            <p className="text-sm text-gray-400">Loading transcript data...</p>
+            <p className="text-xs text-gray-500 mt-1">This may take a few moments</p>
           </div>
         </div>
       </div>

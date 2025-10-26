@@ -102,7 +102,7 @@ export default function VideoPlayerModal({
     fetchVideoUrl();
   }, [isOpen, videoKey]);
 
-  // Fetch transcript data for analysis
+  // Fetch transcript data for analysis with polling
   useEffect(() => {
     if (!isOpen || !videoKey) {
       setTranscript(null);
@@ -110,9 +110,11 @@ export default function VideoPlayerModal({
       return;
     }
 
+    let pollInterval: NodeJS.Timeout | null = null;
+    let isMounted = true;
+
     const fetchTranscriptData = async () => {
-      setTranscriptLoading(true);
-      setTranscriptError(null);
+      if (!isMounted) return;
 
       try {
         // Step 1: Get pre-signed URL from API
@@ -127,11 +129,9 @@ export default function VideoPlayerModal({
         if (!urlResponse.ok) {
           const errorData = await urlResponse.json();
           
-          // Handle "not found" gracefully - don't show as error
+          // Handle "not found" gracefully - continue polling
           if (errorData.exists === false) {
-            setTranscript(null);
-            setTranscriptError(null);
-            setTranscriptLoading(false);
+            console.log('Transcript not ready yet, will retry...');
             return;
           }
           
@@ -148,26 +148,53 @@ export default function VideoPlayerModal({
         }
 
         const transcriptData: TranscriptResponse = await transcriptResponse.json();
-        setTranscript(transcriptData);
+        
+        if (isMounted) {
+          setTranscript(transcriptData);
+          setTranscriptLoading(false);
+          
+          // Stop polling once we have data
+          if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+          }
+        }
       } catch (err) {
         console.error('Error fetching transcript for analysis:', err);
-        setTranscriptError(err instanceof Error ? err.message : 'Failed to load transcript');
-      } finally {
-        setTranscriptLoading(false);
+        // Don't set error state, just keep polling
       }
     };
 
+    // Initial fetch
+    setTranscriptLoading(true);
+    setTranscriptError(null);
     fetchTranscriptData();
+
+    // Poll every 5 seconds
+    pollInterval = setInterval(fetchTranscriptData, 5000);
+
+    // Cleanup
+    return () => {
+      isMounted = false;
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    };
   }, [isOpen, videoKey]);
 
-  // Fetch analysis data for sentiment visualization
+  // Fetch analysis data for sentiment visualization with polling
   useEffect(() => {
     if (!isOpen || !videoKey) {
       setAnalysisData(null);
       return;
     }
 
+    let pollInterval: NodeJS.Timeout | null = null;
+    let isMounted = true;
+
     const fetchAnalysisData = async () => {
+      if (!isMounted) return;
+
       try {
         // Step 1: Get pre-signed URL from API
         const urlResponse = await fetch('/api/recordings/analysis', {
@@ -181,9 +208,9 @@ export default function VideoPlayerModal({
         if (!urlResponse.ok) {
           const errorData = await urlResponse.json();
           
-          // Handle "not found" gracefully - analysis is optional
+          // Handle "not found" gracefully - continue polling
           if (errorData.exists === false) {
-            setAnalysisData(null);
+            console.log('Analysis not ready yet, will retry...');
             return;
           }
           
@@ -200,15 +227,35 @@ export default function VideoPlayerModal({
         }
 
         const data: AnalysisData = await analysisResponse.json();
-        setAnalysisData(data);
+        
+        if (isMounted) {
+          setAnalysisData(data);
+          
+          // Stop polling once we have data
+          if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+          }
+        }
       } catch (err) {
         console.error('Error fetching analysis data:', err);
-        // Don't set error state - analysis is optional
-        setAnalysisData(null);
+        // Don't set error state, just keep polling
       }
     };
 
+    // Initial fetch
     fetchAnalysisData();
+
+    // Poll every 5 seconds
+    pollInterval = setInterval(fetchAnalysisData, 5000);
+
+    // Cleanup
+    return () => {
+      isMounted = false;
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    };
   }, [isOpen, videoKey]);
 
   // Handle ESC key to close

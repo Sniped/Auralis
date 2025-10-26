@@ -50,7 +50,6 @@ function HighlightText({ text, highlight }: { text: string; highlight: string })
 export default function TranscriptPanel({ videoKey, currentTime = 0, onSeekTo }: TranscriptPanelProps) {
   const [transcript, setTranscript] = useState<TranscriptResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const activeSegmentRef = useRef<HTMLDivElement>(null);
@@ -60,9 +59,11 @@ export default function TranscriptPanel({ videoKey, currentTime = 0, onSeekTo }:
   useEffect(() => {
     if (!videoKey) return;
 
+    let pollInterval: NodeJS.Timeout | null = null;
+    let isMounted = true;
+
     const fetchTranscript = async () => {
-      setLoading(true);
-      setError(null);
+      if (!isMounted) return;
 
       try {
         // Step 1: Get pre-signed URL from API
@@ -77,11 +78,9 @@ export default function TranscriptPanel({ videoKey, currentTime = 0, onSeekTo }:
         if (!urlResponse.ok) {
           const errorData = await urlResponse.json();
           
-          // Handle "not found" gracefully - don't show as error
+          // Handle "not found" gracefully - continue polling
           if (errorData.exists === false) {
-            setTranscript(null);
-            setError(null);
-            setLoading(false);
+            console.log('Transcript not ready yet, will retry in 5 seconds...');
             return;
           }
           
@@ -98,16 +97,37 @@ export default function TranscriptPanel({ videoKey, currentTime = 0, onSeekTo }:
         }
 
         const transcriptData: TranscriptResponse = await transcriptResponse.json();
-        setTranscript(transcriptData);
+        
+        if (isMounted) {
+          setTranscript(transcriptData);
+          setLoading(false);
+          
+          // Stop polling once we have data
+          if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+          }
+        }
       } catch (err) {
         console.error('Error fetching transcript:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load transcript');
-      } finally {
-        setLoading(false);
+        // Don't set error, just keep polling
       }
     };
 
+    // Initial fetch
+    setLoading(true);
     fetchTranscript();
+
+    // Poll every 5 seconds
+    pollInterval = setInterval(fetchTranscript, 5000);
+
+    // Cleanup
+    return () => {
+      isMounted = false;
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    };
   }, [videoKey]);
 
   // Determine if a segment is currently active based on video time
@@ -188,43 +208,14 @@ export default function TranscriptPanel({ videoKey, currentTime = 0, onSeekTo }:
     );
   };
 
-  // Loading state
-  if (loading) {
+    // Loading or not available - show loading spinner
+  if (loading || !transcript) {
     return (
       <div className="h-full flex items-center justify-center p-6">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mb-3"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mb-4"></div>
           <p className="text-sm text-gray-400">Loading transcript...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Not available state (not an error)
-  if (!transcript && !error) {
-    return (
-      <div className="h-full flex items-center justify-center p-6">
-        <div className="text-center">
-          <svg className="w-12 h-12 text-blue-400/50 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <p className="text-sm text-gray-400">Transcript not available</p>
-          <p className="text-xs text-gray-500 mt-1">This recording has not been transcribed yet</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <div className="h-full flex items-center justify-center p-6">
-        <div className="text-center">
-          <svg className="w-12 h-12 text-red-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p className="text-sm text-red-400">Failed to load transcript</p>
-          <p className="text-xs text-gray-500 mt-1">{error}</p>
+          <p className="text-xs text-gray-500 mt-1">This may take a few moments</p>
         </div>
       </div>
     );
