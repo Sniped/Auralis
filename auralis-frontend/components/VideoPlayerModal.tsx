@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { TranscriptResponse, AnalysisData } from '@/types/transcript';
+import { TranscriptResponse, AnalysisData, SummaryData } from '@/types/transcript';
 import TranscriptPanel from '@/components/TranscriptPanel';
 import AnalysisSection from '@/components/AnalysisSection';
 
@@ -54,6 +54,7 @@ export default function VideoPlayerModal({
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState<string | null>(null);
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
+  const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Function to seek video to specific time
@@ -258,6 +259,82 @@ export default function VideoPlayerModal({
     };
   }, [isOpen, videoKey]);
 
+  // Fetch summary data with polling
+  useEffect(() => {
+    if (!isOpen || !videoKey) {
+      setSummaryData(null);
+      return;
+    }
+
+    let pollInterval: NodeJS.Timeout | null = null;
+    let isMounted = true;
+
+    const fetchSummaryData = async () => {
+      if (!isMounted) return;
+
+      try {
+        // Step 1: Get pre-signed URL from API
+        const urlResponse = await fetch('/api/recordings/summary', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ videoKey }),
+        });
+
+        if (!urlResponse.ok) {
+          const errorData = await urlResponse.json();
+          
+          // Handle "not found" gracefully - continue polling
+          if (errorData.exists === false) {
+            console.log('Summary not ready yet, will retry in 5 seconds...');
+            return;
+          }
+          
+          throw new Error(errorData.error || 'Failed to get summary URL');
+        }
+
+        const { url } = await urlResponse.json();
+
+        // Step 2: Fetch summary JSON from S3
+        const summaryResponse = await fetch(url);
+        
+        if (!summaryResponse.ok) {
+          throw new Error('Failed to fetch summary data');
+        }
+
+        const data: SummaryData = await summaryResponse.json();
+        
+        if (isMounted) {
+          setSummaryData(data);
+          
+          // Stop polling once we have data
+          if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching summary data:', err);
+        // Don't set error state, just keep polling
+      }
+    };
+
+    // Initial fetch
+    fetchSummaryData();
+
+    // Poll every 5 seconds
+    pollInterval = setInterval(fetchSummaryData, 5000);
+
+    // Cleanup
+    return () => {
+      isMounted = false;
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    };
+  }, [isOpen, videoKey]);
+
   // Handle ESC key to close
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -380,6 +457,7 @@ export default function VideoPlayerModal({
                 <AnalysisSection 
                   transcript={transcript}
                   analysisData={analysisData}
+                  summaryData={summaryData}
                   loading={transcriptLoading}
                   error={transcriptError}
                   onSeekTo={handleSeekTo}

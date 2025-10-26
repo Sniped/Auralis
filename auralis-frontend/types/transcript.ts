@@ -156,6 +156,12 @@ export interface AnalysisData {
   LanguageCode?: string;
 }
 
+export interface SummaryData {
+  summary: string;
+  fileName: string;
+  generatedAt: string;
+}
+
 /**
  * Complete AWS Transcribe response structure
  */

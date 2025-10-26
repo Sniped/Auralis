@@ -8,7 +8,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { TranscriptResponse, AnalysisData } from '@/types/transcript';
+import { TranscriptResponse, AnalysisData, SummaryData } from '@/types/transcript';
 import {
   calculateDuration,
   getSpeakerStats,
@@ -19,6 +19,7 @@ import {
   getKeyMoments,
   AnalysisMetrics,
 } from '@/lib/analysis-utils';
+import SummaryCard from './analysis/SummaryCard';
 import EmotionalJourneyCard from './analysis/EmotionalJourneyCard';
 import OverviewCard from './analysis/OverviewCard';
 import SpeakerDistributionCard from './analysis/SpeakerDistributionCard';
@@ -29,6 +30,7 @@ import KeyMomentsCard from './analysis/KeyMomentsCard';
 interface AnalysisSectionProps {
   transcript: TranscriptResponse | null;
   analysisData: AnalysisData | null;
+  summaryData: SummaryData | null;
   loading: boolean;
   error: string | null; // Keep for compatibility but don't use
   onSeekTo: (seconds: number) => void;
@@ -37,6 +39,7 @@ interface AnalysisSectionProps {
 export default function AnalysisSection({
   transcript,
   analysisData,
+  summaryData,
   loading,
   onSeekTo,
 }: AnalysisSectionProps) {
@@ -133,14 +136,20 @@ export default function AnalysisSection({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-6 scrollbar-custom space-y-6">
-        {/* Row 1: Emotional Journey - Full Width */}
+        {/* Row 1: AI Summary - Full Width */}
+        <SummaryCard
+          summaryData={summaryData}
+          loading={loading}
+        />
+
+        {/* Row 2: Emotional Journey - Full Width */}
         <EmotionalJourneyCard
           analysisData={analysisData}
           loading={loading}
           onSeekTo={onSeekTo}
         />
 
-        {/* Row 2: Overview - Full Width */}
+        {/* Row 3: Overview - Full Width */}
         <OverviewCard
           duration={metrics.duration}
           speakerCount={metrics.speakerCount}
@@ -148,7 +157,7 @@ export default function AnalysisSection({
           speakingRate={metrics.speakingRate}
         />
 
-        {/* Row 3: Speaker Distribution + Quality - 50/50 Split */}
+        {/* Row 4: Speaker Distribution + Quality - 50/50 Split */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <SpeakerDistributionCard speakerStats={metrics.speakerStats} />
           <TranscriptQualityCard
@@ -157,7 +166,7 @@ export default function AnalysisSection({
           />
         </div>
 
-        {/* Row 4: Conversation Flow - Full Width */}
+        {/* Row 5: Conversation Flow - Full Width */}
         {transcript?.results?.audio_segments && (
           <ConversationFlowCard
             audioSegments={transcript.results.audio_segments}
@@ -165,7 +174,7 @@ export default function AnalysisSection({
           />
         )}
 
-        {/* Row 5: Key Moments - Full Width */}
+        {/* Row 6: Key Moments - Full Width */}
         <KeyMomentsCard keyMoments={metrics.keyMoments} onSeekTo={onSeekTo} />
       </div>
     </div>
