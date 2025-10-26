@@ -7,6 +7,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { isAuthenticated, signOut, getCurrentSession } from "@/lib/auth";
 import UploadModal from "@/components/UploadModal";
+import RecordingCard from "@/components/RecordingCard";
+import VideoPlayerModal from "@/components/VideoPlayerModal";
+import { Recording } from "@/types/recordings";
 
 /**
  * Dashboard Page for Auralis Healthcare Documentation
@@ -14,53 +17,36 @@ import UploadModal from "@/components/UploadModal";
  * Protected route - requires AWS Cognito authentication
  * 
  * This dashboard provides healthcare professionals with:
- * - Recent patient interaction records
- * - Quick access to captured details (symptoms, emotions, cues)
+ * - Video recordings from S3
+ * - Video playback functionality
  * - Search and filter functionality
  * - Video upload functionality to S3
+ * 
+ * Testing Checklist:
+ * [ ] Videos load from S3
+ * [ ] Pre-signed URLs generate correctly
+ * [ ] Video plays in modal
+ * [ ] Modal closes properly
+ * [ ] Error handling works
+ * [ ] Loading states display
+ * [ ] Responsive on mobile
+ * [ ] Works with multiple videos
  */
-
-// Mock data - TODO: Replace with actual API calls
-const mockPatientRecords = [
-  {
-    id: 1,
-    patientName: "Sarah Johnson",
-    date: "2025-10-25",
-    time: "10:30 AM",
-    symptoms: ["Persistent headache", "Fatigue", "Dizziness"],
-    emotions: "Anxious about symptoms, concerned about work impact",
-    keyPoints: "Patient mentioned stress at work increased last week. History of migraines.",
-    duration: "15 min"
-  },
-  {
-    id: 2,
-    patientName: "Michael Chen",
-    date: "2025-10-25",
-    time: "09:15 AM",
-    symptoms: ["Lower back pain", "Limited mobility"],
-    emotions: "Frustrated with recovery progress, motivated to improve",
-    keyPoints: "Pain worse in mornings. Completed physical therapy exercises inconsistently.",
-    duration: "20 min"
-  },
-  {
-    id: 3,
-    patientName: "Emily Rodriguez",
-    date: "2025-10-24",
-    time: "2:45 PM",
-    symptoms: ["Shortness of breath", "Chest tightness"],
-    emotions: "Worried but trying to stay calm, mentioned family history",
-    keyPoints: "Symptoms during exercise only. Requested cardiac screening due to family history.",
-    duration: "18 min"
-  }
-];
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedRecord, setSelectedRecord] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState("");
   const [showUploadModal, setShowUploadModal] = useState(false);
+  
+  // Video recordings state
+  const [recordings, setRecordings] = useState<Recording[]>([]);
+  const [recordingsLoading, setRecordingsLoading] = useState(false);
+  const [recordingsError, setRecordingsError] = useState<string | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<{ key: string; name: string } | null>(null);
+  const [showPlayer, setShowPlayer] = useState(false);
+  
   const router = useRouter();
 
   // Check authentication on mount
@@ -96,9 +82,52 @@ export default function Dashboard() {
 
   // Handle upload complete
   const handleUploadComplete = () => {
-    // TODO: Refresh recordings list or update UI
+    // Refresh recordings list after upload
+    fetchRecordings();
     console.log('Upload completed successfully');
   };
+
+  // Fetch recordings from S3
+  const fetchRecordings = async () => {
+    setRecordingsLoading(true);
+    setRecordingsError(null);
+
+    try {
+      const response = await fetch('/api/recordings/list');
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch recordings');
+      }
+
+      const data = await response.json();
+      setRecordings(data.recordings || []);
+    } catch (err) {
+      console.error('Error fetching recordings:', err);
+      setRecordingsError(err instanceof Error ? err.message : 'Failed to load recordings');
+    } finally {
+      setRecordingsLoading(false);
+    }
+  };
+
+  // Handle video play
+  const handlePlay = (key: string, name: string) => {
+    setSelectedVideo({ key, name });
+    setShowPlayer(true);
+  };
+
+  // Handle video player close
+  const handleClosePlayer = () => {
+    setShowPlayer(false);
+    setSelectedVideo(null);
+  };
+
+  // Fetch recordings on mount
+  useEffect(() => {
+    if (!loading && userId) {
+      fetchRecordings();
+    }
+  }, [loading, userId]);
 
   // Show loading state while checking authentication
   if (loading) {
@@ -112,16 +141,16 @@ export default function Dashboard() {
     );
   }
 
-  // Filter records based on search
-  const filteredRecords = mockPatientRecords.filter(record =>
-    record.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    record.symptoms.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
+  // Filter recordings based on search
+  const filteredRecordings = recordings.filter(recording =>
+    recording.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    recording.userId.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <main className="relative bg-gradient-to-br from-gray-900 via-blue-950 to-black min-h-screen overflow-hidden overscroll-none">
+    <main className="relative bg-gradient-to-br from-gray-900 via-blue-950 to-black min-h-screen">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-gray-900/50 border-b border-white/10">
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-gray-900/50 border-b border-white/10">
         <div className="w-full px-8 sm:px-12 md:px-16 lg:px-20 xl:px-24 py-4 flex justify-between items-center">
           {/* Logo */}
           <Link 
@@ -177,7 +206,7 @@ export default function Dashboard() {
             <CardContent className="p-6">
               <input
                 type="text"
-                placeholder="Search by patient name or symptoms..."
+                placeholder="Search recordings by filename or user ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-6 py-4 rounded-xl bg-gray-900/50 border border-blue-500/30 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all text-lg"
@@ -190,9 +219,9 @@ export default function Dashboard() {
             <Card className="bg-gradient-to-br from-[rgba(59,130,246,0.12)] to-[rgba(6,182,212,0.12)] border-[rgba(59,130,246,0.35)] backdrop-blur-sm shadow-xl shadow-blue-500/10">
               <CardContent className="p-6">
                 <div className="space-y-2">
-                  <p className="text-sm text-gray-400 uppercase tracking-wider">Today&apos;s Interactions</p>
+                  <p className="text-sm text-gray-400 uppercase tracking-wider">Total Recordings</p>
                   <p className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                    8
+                    {recordingsLoading ? '...' : recordings.length}
                   </p>
                 </div>
               </CardContent>
@@ -201,9 +230,9 @@ export default function Dashboard() {
             <Card className="bg-gradient-to-br from-[rgba(59,130,246,0.12)] to-[rgba(6,182,212,0.12)] border-[rgba(59,130,246,0.35)] backdrop-blur-sm shadow-xl shadow-blue-500/10">
               <CardContent className="p-6">
                 <div className="space-y-2">
-                  <p className="text-sm text-gray-400 uppercase tracking-wider">This Week</p>
+                  <p className="text-sm text-gray-400 uppercase tracking-wider">Search Results</p>
                   <p className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                    42
+                    {recordingsLoading ? '...' : filteredRecordings.length}
                   </p>
                 </div>
               </CardContent>
@@ -212,101 +241,89 @@ export default function Dashboard() {
             <Card className="bg-gradient-to-br from-[rgba(59,130,246,0.12)] to-[rgba(6,182,212,0.12)] border-[rgba(59,130,246,0.35)] backdrop-blur-sm shadow-xl shadow-blue-500/10">
               <CardContent className="p-6">
                 <div className="space-y-2">
-                  <p className="text-sm text-gray-400 uppercase tracking-wider">Total Records</p>
+                  <p className="text-sm text-gray-400 uppercase tracking-wider">Storage Used</p>
                   <p className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                    1,247
+                    {recordingsLoading ? '...' : (recordings.reduce((acc, r) => acc + r.size, 0) / (1024 * 1024 * 1024)).toFixed(2)} GB
                   </p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Patient Records List */}
+          {/* Patient Recordings List */}
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-white">Recent Interactions</h2>
+            <h2 className="text-2xl font-bold text-white">Patient Recordings</h2>
             
-            {filteredRecords.length === 0 ? (
+            {recordingsLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="bg-gradient-to-br from-[rgba(59,130,246,0.12)] to-[rgba(6,182,212,0.12)] border-[rgba(59,130,246,0.35)] backdrop-blur-sm">
+                    <CardContent className="p-6">
+                      <div className="animate-pulse flex items-center gap-4">
+                        <div className="w-16 h-16 bg-blue-500/20 rounded-xl"></div>
+                        <div className="flex-1 space-y-3">
+                          <div className="h-4 bg-blue-500/20 rounded w-3/4"></div>
+                          <div className="h-3 bg-blue-500/10 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : recordingsError ? (
+              <Card className="bg-gradient-to-br from-[rgba(239,68,68,0.12)] to-[rgba(220,38,38,0.12)] border-[rgba(239,68,68,0.35)] backdrop-blur-sm">
+                <CardContent className="p-12 text-center">
+                  <svg className="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-red-400 font-semibold mb-2">Error Loading Recordings</p>
+                  <p className="text-gray-400 mb-4">{recordingsError}</p>
+                  <Button
+                    onClick={fetchRecordings}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Try Again
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : filteredRecordings.length === 0 ? (
               <Card className="bg-gradient-to-br from-[rgba(59,130,246,0.08)] to-[rgba(6,182,212,0.08)] border-[rgba(59,130,246,0.3)] backdrop-blur-sm">
                 <CardContent className="p-12 text-center">
-                  <p className="text-gray-400 text-lg">No records found matching your search.</p>
+                  <svg className="w-16 h-16 text-blue-400/50 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <p className="text-gray-400 text-lg mb-2">
+                    {searchQuery ? 'No recordings found matching your search.' : 'No recordings yet.'}
+                  </p>
+                  {!searchQuery && (
+                    <p className="text-gray-500 mb-6">
+                      Upload your first recording to get started!
+                    </p>
+                  )}
+                  {!searchQuery && (
+                    <Button
+                      onClick={() => setShowUploadModal(true)}
+                      className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
+                    >
+                      + Upload Recording
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ) : (
-              filteredRecords.map((record) => (
-                <Card 
-                  key={record.id}
-                  className={`bg-gradient-to-br from-[rgba(59,130,246,0.12)] to-[rgba(6,182,212,0.12)] border-[rgba(59,130,246,0.35)] backdrop-blur-sm shadow-xl shadow-blue-500/10 transition-all duration-300 hover:shadow-blue-500/20 hover:border-blue-400/50 cursor-pointer ${
-                    selectedRecord === record.id ? 'ring-2 ring-blue-400' : ''
-                  }`}
-                  onClick={() => setSelectedRecord(selectedRecord === record.id ? null : record.id)}
-                >
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-2xl text-white mb-2">
-                          {record.patientName}
-                        </CardTitle>
-                        <div className="flex gap-4 text-sm text-gray-400">
-                          <span>{record.date}</span>
-                          <span>•</span>
-                          <span>{record.time}</span>
-                          <span>•</span>
-                          <span>{record.duration}</span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          className="bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30"
-                        >
-                          View Full
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  
-                  {selectedRecord === record.id && (
-                    <CardContent className="space-y-4 border-t border-blue-500/20 pt-6">
-                      {/* Symptoms Section */}
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-bold text-blue-300 uppercase tracking-wider">
-                          Symptoms Captured
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {record.symptoms.map((symptom, idx) => (
-                            <span 
-                              key={idx}
-                              className="px-3 py-1 bg-blue-500/20 border border-blue-500/30 rounded-full text-sm text-blue-200"
-                            >
-                              {symptom}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Emotional Cues Section */}
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-bold text-cyan-300 uppercase tracking-wider">
-                          Emotional Cues
-                        </h4>
-                        <p className="text-gray-300 leading-relaxed">
-                          {record.emotions}
-                        </p>
-                      </div>
-
-                      {/* Key Points Section */}
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-bold text-green-300 uppercase tracking-wider">
-                          Key Points
-                        </h4>
-                        <p className="text-gray-300 leading-relaxed">
-                          {record.keyPoints}
-                        </p>
-                      </div>
-                    </CardContent>
-                  )}
-                </Card>
-              ))
+              <div className="space-y-4">
+                {filteredRecordings.map((recording) => (
+                  <RecordingCard
+                    key={recording.key}
+                    videoKey={recording.key}
+                    fileName={recording.fileName}
+                    lastModified={recording.lastModified}
+                    size={recording.size}
+                    userId={recording.userId}
+                    onPlay={handlePlay}
+                  />
+                ))}
+              </div>
             )}
           </div>
         </div>
@@ -318,6 +335,14 @@ export default function Dashboard() {
         onClose={() => setShowUploadModal(false)}
         onUploadComplete={handleUploadComplete}
         userId={userId}
+      />
+
+      {/* Video Player Modal */}
+      <VideoPlayerModal
+        isOpen={showPlayer}
+        videoKey={selectedVideo?.key || null}
+        videoName={selectedVideo?.name || ''}
+        onClose={handleClosePlayer}
       />
     </main>
   );
