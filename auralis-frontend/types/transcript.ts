@@ -74,6 +74,88 @@ export interface TranscriptResults {
   items: TranscriptItem[];
 }
 
+// Sentiment Analysis Types
+// AWS Comprehend format (legacy)
+export interface SentimentScores {
+  Positive: number;
+  Negative: number;
+  Neutral: number;
+  Mixed: number;
+}
+
+export interface SegmentSentiment {
+  text: string;
+  sentiment: string;
+  sentiment_score: SentimentScores;
+  start_time: number;
+  end_time: number;
+}
+
+export interface SentimentAnalysis {
+  overall_sentiment: string;
+  sentiment_scores: SentimentScores;
+  segment_sentiments?: SegmentSentiment[];
+}
+
+// AWS Call Analytics format (current)
+export interface SentimentPeriod {
+  BeginOffsetMillis: number;
+  EndOffsetMillis: number;
+  Score: number; // -5 to 5 scale
+}
+
+export interface SentimentByPeriod {
+  QUARTER: {
+    AGENT?: SentimentPeriod[];
+    CUSTOMER?: SentimentPeriod[];
+  };
+}
+
+export interface CallAnalyticsSentiment {
+  OverallSentiment: {
+    AGENT?: number;
+    CUSTOMER?: number;
+  };
+  SentimentByPeriod: SentimentByPeriod;
+}
+
+export interface ConversationCharacteristics {
+  TotalConversationDurationMillis: number;
+  Sentiment: CallAnalyticsSentiment;
+  TalkTime?: Record<string, unknown>;
+  TalkSpeed?: Record<string, unknown>;
+  Interruptions?: Record<string, unknown>;
+  NonTalkTime?: Record<string, unknown>;
+}
+
+export interface TranscriptItem {
+  Type: string;
+  Confidence: string;
+  Content: string;
+  BeginOffsetMillis?: number;
+  EndOffsetMillis?: number;
+}
+
+export interface CallAnalyticsTranscript {
+  ParticipantRole: string;
+  Content: string;
+  Items: TranscriptItem[];
+  LoudnessScores?: number[];
+  Sentiment?: number;
+}
+
+export interface AnalysisData {
+  // AWS Comprehend format (legacy)
+  sentiment_analysis?: SentimentAnalysis;
+  
+  // AWS Call Analytics format (current)
+  ConversationCharacteristics?: ConversationCharacteristics;
+  Transcript?: CallAnalyticsTranscript[];
+  JobName?: string;
+  JobStatus?: string;
+  LanguageCode?: string;
+}
+
 /**
  * Complete AWS Transcribe response structure
  */

@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { TranscriptResponse, AnalysisData } from '@/types/transcript';
 import TranscriptPanel from '@/components/TranscriptPanel';
-import AnalysisPanel from '@/components/AnalysisPanel';
+import AnalysisSection from '@/components/AnalysisSection';
 
 interface VideoPlayerModalProps {
   isOpen: boolean;
@@ -49,6 +50,10 @@ export default function VideoPlayerModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
+  const [transcript, setTranscript] = useState<TranscriptResponse | null>(null);
+  const [transcriptLoading, setTranscriptLoading] = useState(false);
+  const [transcriptError, setTranscriptError] = useState<string | null>(null);
+  const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Function to seek video to specific time
@@ -95,6 +100,115 @@ export default function VideoPlayerModal({
     };
 
     fetchVideoUrl();
+  }, [isOpen, videoKey]);
+
+  // Fetch transcript data for analysis
+  useEffect(() => {
+    if (!isOpen || !videoKey) {
+      setTranscript(null);
+      setTranscriptError(null);
+      return;
+    }
+
+    const fetchTranscriptData = async () => {
+      setTranscriptLoading(true);
+      setTranscriptError(null);
+
+      try {
+        // Step 1: Get pre-signed URL from API
+        const urlResponse = await fetch('/api/recordings/transcript', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ videoKey }),
+        });
+
+        if (!urlResponse.ok) {
+          const errorData = await urlResponse.json();
+          
+          // Handle "not found" gracefully - don't show as error
+          if (errorData.exists === false) {
+            setTranscript(null);
+            setTranscriptError(null);
+            setTranscriptLoading(false);
+            return;
+          }
+          
+          throw new Error(errorData.error || 'Failed to get transcript URL');
+        }
+
+        const { url } = await urlResponse.json();
+
+        // Step 2: Fetch transcript JSON from S3
+        const transcriptResponse = await fetch(url);
+        
+        if (!transcriptResponse.ok) {
+          throw new Error('Failed to fetch transcript data');
+        }
+
+        const transcriptData: TranscriptResponse = await transcriptResponse.json();
+        setTranscript(transcriptData);
+      } catch (err) {
+        console.error('Error fetching transcript for analysis:', err);
+        setTranscriptError(err instanceof Error ? err.message : 'Failed to load transcript');
+      } finally {
+        setTranscriptLoading(false);
+      }
+    };
+
+    fetchTranscriptData();
+  }, [isOpen, videoKey]);
+
+  // Fetch analysis data for sentiment visualization
+  useEffect(() => {
+    if (!isOpen || !videoKey) {
+      setAnalysisData(null);
+      return;
+    }
+
+    const fetchAnalysisData = async () => {
+      try {
+        // Step 1: Get pre-signed URL from API
+        const urlResponse = await fetch('/api/recordings/analysis', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ videoKey }),
+        });
+
+        if (!urlResponse.ok) {
+          const errorData = await urlResponse.json();
+          
+          // Handle "not found" gracefully - analysis is optional
+          if (errorData.exists === false) {
+            setAnalysisData(null);
+            return;
+          }
+          
+          throw new Error(errorData.error || 'Failed to get analysis URL');
+        }
+
+        const { url } = await urlResponse.json();
+
+        // Step 2: Fetch analysis JSON from S3
+        const analysisResponse = await fetch(url);
+        
+        if (!analysisResponse.ok) {
+          throw new Error('Failed to fetch analysis data');
+        }
+
+        const data: AnalysisData = await analysisResponse.json();
+        setAnalysisData(data);
+      } catch (err) {
+        console.error('Error fetching analysis data:', err);
+        // Don't set error state - analysis is optional
+        setAnalysisData(null);
+      }
+    };
+
+    fetchAnalysisData();
   }, [isOpen, videoKey]);
 
   // Handle ESC key to close
@@ -216,7 +330,13 @@ export default function VideoPlayerModal({
             {/* Bottom Row: Analysis Panel - Full Width */}
             <div className="w-full">
               <div className="bg-[#0a1628] border border-cyan-500/20 rounded-xl overflow-hidden h-[500px]">
-                <AnalysisPanel videoKey={videoKey || ''} />
+                <AnalysisSection 
+                  transcript={transcript}
+                  analysisData={analysisData}
+                  loading={transcriptLoading}
+                  error={transcriptError}
+                  onSeekTo={handleSeekTo}
+                />
               </div>
             </div>
           </div>
