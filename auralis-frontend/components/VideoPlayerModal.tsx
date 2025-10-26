@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import TranscriptPanel from '@/components/TranscriptPanel';
+import AnalysisPanel from '@/components/AnalysisPanel';
 
 interface VideoPlayerModalProps {
   isOpen: boolean;
@@ -13,16 +15,29 @@ interface VideoPlayerModalProps {
 /**
  * Video Player Modal Component
  * 
- * Displays a modal with video player and placeholder for transcript/analysis.
- * Fetches pre-signed URL from API and plays video using ReactPlayer.
+ * Displays a modal with video player, transcript, and analysis panels.
+ * Fetches pre-signed URL from API and plays video.
  * 
  * Features:
  * - Video playback with controls
+ * - Live transcript with speaker labels
+ * - Sentiment analysis and insights
+ * - Three-column layout (video, transcript, analysis)
  * - Loading state while fetching URL
  * - Error handling
  * - Click outside or ESC to close
- * - Responsive layout (video left, transcript placeholder right)
+ * - Responsive design (stacks on mobile)
  * - Dark theme matching dashboard
+ * 
+ * Testing Checklist:
+ * [ ] Video plays correctly
+ * [ ] Transcript loads and displays
+ * [ ] Analysis loads and displays
+ * [ ] Handles missing transcript gracefully
+ * [ ] Handles missing analysis gracefully
+ * [ ] Three-column layout displays properly
+ * [ ] Mobile responsive design works
+ * [ ] Current segment highlighting works
  */
 export default function VideoPlayerModal({
   isOpen,
@@ -33,6 +48,7 @@ export default function VideoPlayerModal({
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
 
   // Fetch pre-signed URL when modal opens
   useEffect(() => {
@@ -106,7 +122,7 @@ export default function VideoPlayerModal({
       onClick={onClose}
     >
       <Card
-        className="w-full max-w-6xl bg-[#0a1628] border-blue-500/30 shadow-2xl shadow-blue-500/20 max-h-[90vh] overflow-hidden"
+        className="w-full max-w-7xl bg-[#0a1628] border-blue-500/30 shadow-2xl shadow-blue-500/20 max-h-[90vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <CardContent className="p-6">
@@ -126,10 +142,10 @@ export default function VideoPlayerModal({
             </button>
           </div>
 
-          {/* Main Content: Video Player + Transcript Placeholder */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Video Player Section (Left - 2/3 width on large screens) */}
-            <div className="lg:col-span-2">
+          {/* Main Content: Video Player + Transcript + Analysis */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Video Player Section (Left - 50% on desktop, full width on mobile) */}
+            <div className="lg:col-span-1">
               <div className="bg-black rounded-xl overflow-hidden aspect-video">
                 {loading && (
                   <div className="w-full h-full flex items-center justify-center bg-gray-900">
@@ -165,6 +181,7 @@ export default function VideoPlayerModal({
                     autoPlay
                     className="w-full h-full"
                     style={{ backgroundColor: '#000' }}
+                    onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
                   >
                     Your browser does not support the video tag.
                   </video>
@@ -172,31 +189,19 @@ export default function VideoPlayerModal({
               </div>
             </div>
 
-            {/* Transcript/Analysis Placeholder Section (Right - 1/3 width on large screens) */}
-            <div className="lg:col-span-1">
-              <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-xl p-6 h-full min-h-[300px] lg:min-h-[400px]">
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <svg className="w-16 h-16 text-blue-400/50 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <h3 className="text-lg font-semibold text-gray-300 mb-2">
-                    Transcript & Analysis
-                  </h3>
-                  <p className="text-sm text-gray-400 mb-4">
-                    AI-generated transcript and patient interaction analysis will appear here.
-                  </p>
-                  <div className="space-y-2 w-full">
-                    <div className="bg-blue-500/5 border border-blue-500/20 rounded-lg p-3 text-left">
-                      <p className="text-xs text-blue-300 font-semibold mb-1">Coming Soon:</p>
-                      <ul className="text-xs text-gray-400 space-y-1 list-disc list-inside">
-                        <li>Speech-to-text transcription</li>
-                        <li>Symptom extraction</li>
-                        <li>Emotional analysis</li>
-                        <li>Key insights</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
+            {/* Transcript + Analysis Section (Right - 50% on desktop) */}
+            <div className="lg:col-span-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 h-[600px]">
+              {/* Transcript Panel */}
+              <div className="bg-[#0a1628] border border-blue-500/20 rounded-xl overflow-hidden">
+                <TranscriptPanel 
+                  videoKey={videoKey || ''} 
+                  currentTime={currentTime}
+                />
+              </div>
+
+              {/* Analysis Panel */}
+              <div className="bg-[#0a1628] border border-cyan-500/20 rounded-xl overflow-hidden">
+                <AnalysisPanel videoKey={videoKey || ''} />
               </div>
             </div>
           </div>
